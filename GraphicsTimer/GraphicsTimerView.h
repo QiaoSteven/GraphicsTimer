@@ -34,7 +34,9 @@ public:
 	CPoint startPoint;//画一段折线的起始点
 	CPoint endPoint;//画一段折线的终止点
 	bool boolLButtonDown;//标记鼠标左键是否按下
-	CArray<CPoint, CPoint> pointList;//顶点列表
+	CArray<CPoint, CPoint> pointList;//多边形顶点列表
+	CArray<CPoint, CPoint> pointPrintList;//曲线顶点列表
+	CArray<CPoint, CPoint> TempList;//临时顶点列表（中点-顶点-中点）
 	CObArray objList;//每画一个图形，一个Obj,链成ObjList
 	int LeftBorder;//视窗的左边界
 	int RightBorder;//视窗的右边界
@@ -67,6 +69,8 @@ public:
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	void BezierToPoints();
+	CPoint Bezier(double u);
 };
 
 #ifndef _DEBUG  // GraphicsTimerView.cpp 中的调试版本

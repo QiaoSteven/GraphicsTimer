@@ -274,6 +274,42 @@ void CGraphicsTimerView::OnLButtonDblClk(UINT nFlags, CPoint point)
 			CPoint p2 = obj->points.GetAt((j + 1) % pointsize);
 			DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
 		}
+
+
+
+		pointPrintList.RemoveAll();//使用前清空列表
+		//开始求封闭多边形对应的bezier曲线上的离散点
+		CPen pen, *oldpen;
+		pen.CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+		oldpen = pDC->SelectObject(&pen);
+		for (int j = 0; j < pointsize; j++)
+		{
+			CPoint p1 = obj->points.GetAt(j);
+			CPoint p2 = obj->points.GetAt((j + 1) % pointsize);
+			CPoint p3 = obj->points.GetAt((j + 2) % pointsize);
+			CPoint mid1;
+			CPoint mid2;
+			mid1.x = (p1.x + p2.x) / 2;
+			mid1.y = (p1.y + p2.y) / 2;
+			mid2.x = (p2.x + p3.x) / 2;
+			mid2.y = (p2.y + p3.y) / 2;
+			TempList.RemoveAll();//使用前清空列表
+			TempList.Add(mid1);
+			TempList.Add(p2);
+			TempList.Add(mid2);
+			BezierToPoints();
+		}
+
+		//开始画封闭多边形对应的bezier曲线
+		pDC->MoveTo(pointPrintList.GetAt(0));
+		for (int i = 1; i < pointPrintList.GetSize(); i++)
+		{
+			pDC->LineTo(pointPrintList.GetAt(i));
+		}
+		pDC->SelectObject(oldpen);
+		pointPrintList.RemoveAll();
+
+
 	}
 
 
@@ -360,4 +396,51 @@ void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 
 
 	CView::OnTimer(nIDEvent);
+}
+
+
+void CGraphicsTimerView::BezierToPoints()
+{
+	// TODO: 在此处添加实现代码
+	int nPoints = 50;//用50个点画出Bezier曲线
+	double u = 0;
+	double delt = 1 / (double)(nPoints);
+	for (int i = 0; i < nPoints + 1; i++)
+	{
+		pointPrintList.Add(Bezier(u));
+		u += delt;
+	}
+}
+
+
+CPoint CGraphicsTimerView::Bezier(double u)
+{
+	// TODO: 在此处添加实现代码.
+	int N = 2;
+	int m, i;
+	CPoint *R = new CPoint[N + 1];
+	CPoint *Q = new CPoint[N + 1];
+	CPoint P;
+	/****************************************************/
+	for (int i = 0; i < TempList.GetSize(); i++)
+	{
+		R[i] = TempList.GetAt(i);
+	}
+	/****************************************************/
+	for (int m = N; m > 0; m--)
+	{
+		for (int i = 0; i < m; i++)
+		{
+			Q[i].x = R[i].x + (R[i + 1].x - R[i].x)*u;
+			Q[i].y = R[i].y + (R[i + 1].y - R[i].y)*u;
+		}
+		for (int i = 0; i < m; i++)
+		{
+			R[i] = Q[i];
+		}
+	}
+	P = R[0];
+	delete R;
+	delete Q;
+	return P;
 }
