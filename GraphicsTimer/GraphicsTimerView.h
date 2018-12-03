@@ -36,6 +36,11 @@ public:
 	bool boolLButtonDown;//标记鼠标左键是否按下
 	CArray<CPoint, CPoint> pointList;//顶点列表
 	CObArray objList;//每画一个图形，一个Obj,链成ObjList
+	int LeftBorder;//视窗的左边界
+	int RightBorder;//视窗的右边界
+	int TopBorder;//视窗的上边界
+	int BottomBorder;//视窗的下边界
+	int DirectionFlag[100][100];
 // 实现
 public:
 	virtual ~CGraphicsTimerView();
@@ -61,6 +66,7 @@ public:
 	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
 };
 
 #ifndef _DEBUG  // GraphicsTimerView.cpp 中的调试版本

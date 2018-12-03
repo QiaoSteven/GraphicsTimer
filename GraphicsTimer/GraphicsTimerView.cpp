@@ -35,6 +35,7 @@ BEGIN_MESSAGE_MAP(CGraphicsTimerView, CView)
 	ON_WM_LBUTTONUP()
 	ON_WM_LBUTTONDBLCLK()
 	ON_WM_MOUSEMOVE()
+	ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 // CGraphicsTimerView 构造/析构
@@ -42,7 +43,20 @@ END_MESSAGE_MAP()
 CGraphicsTimerView::CGraphicsTimerView() noexcept
 {
 	// TODO: 在此处添加构造代码
+	CRect rect;
+	this->GetClientRect(rect);
+	LeftBorder = 0;
+	RightBorder=rect.right;
+	TopBorder = 0;
+	BottomBorder = rect.bottom;
 
+	for (int i = 0; i < 100; i++)
+	{
+		for (int d = 0; d < 100; d++)//防止超过边界，转换方向,每个图形都重新初始化一下这个DirectionFlag数组
+		{
+			DirectionFlag[i][d] = 1;
+		}
+	}
 }
 
 CGraphicsTimerView::~CGraphicsTimerView()
@@ -181,12 +195,14 @@ void CGraphicsTimerView::OnDrawpolygon()
 void CGraphicsTimerView::OnStartmove()
 {
 	// TODO: 在此添加命令处理程序代码
+	this->SetTimer(1, 50, NULL);
 }
 
 
 void CGraphicsTimerView::OnEndmove()
 {
 	// TODO: 在此添加命令处理程序代码
+	this->KillTimer(1);
 }
 
 
@@ -271,3 +287,76 @@ void CGraphicsTimerView::OnLButtonDblClk(UINT nFlags, CPoint point)
 }
 
 
+
+
+void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	if (nIDEvent == 1) //对1号计时器到期时，进行操作
+	{
+		CDC* pDC = this->GetDC();
+		for (int i = 0; i < objList.GetSize(); i++)//最多可以拥有一百个图形
+		{
+			MapObj* obj = (MapObj*)objList.GetAt(i);//得到一个图形
+			MapObj* newObj = new MapObj();//准备一个新的图形，用于替换原有的图形顶点
+			newObj->type = 1;
+			if (obj->type == 1)//开始替换，首先计算每个顶点的新坐标
+			{
+				int pointsize = obj->points.GetSize();
+				for (int j = 0; j < pointsize; j++)//遍历该图形的每一个顶点
+				{
+					CPoint p1 = obj->points.GetAt(j);//得到该图形的一个顶点，在points中，顶点从0开始计数，而实际应该从1开始计数，所以是判断j+1的奇偶性
+					CPoint p2;//用于承接新的顶点
+					if ((j + 1) % 2 == 0)//顶点为偶数编号
+					{
+						
+						if ((3 * j*DirectionFlag[i][j] + p1.y <= TopBorder)|| (3 * j*DirectionFlag[i][j] + p1.y>=BottomBorder))
+						{
+							DirectionFlag[i][j] = -DirectionFlag[i][j];
+						}
+						p2.x = p1.x;
+						p2.y = 3*j*DirectionFlag[i][j]+p1.y;
+					}
+					else if ((j + 1) % 2 == 1)//顶点为奇数编号
+					{
+						if ((3 * j*DirectionFlag[i][j] + p1.x<= LeftBorder) || (3 * j*DirectionFlag[i][j] + p1.x>=RightBorder))
+						{
+							DirectionFlag[i][j] = -DirectionFlag[i][j];
+						}
+						p2.x = 3*j*DirectionFlag[i][j]+p1.x;
+						p2.y =p1.y;
+					}
+					newObj->points.Add(p2);
+				}
+			}
+
+			pDC->SetROP2(R2_NOTXORPEN);//设置绘图模式为R2_NOT
+			for (int j = 0; j < obj->points.GetSize(); j++)
+			{
+				CPoint p1 = obj->points.GetAt(j);
+				CPoint p2 = obj->points.GetAt((j + 1) % obj->points.GetSize());
+				DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
+			}
+			for (int j = 0; j < newObj->points.GetSize(); j++)
+			{
+				CPoint p1 = newObj->points.GetAt(j);
+				CPoint p2 = newObj->points.GetAt((j + 1) % newObj->points.GetSize());
+				DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
+			}
+
+			objList.SetAt(i, newObj);//用新的顶点替换原来的顶点
+
+		}
+
+
+
+
+		this->ReleaseDC(pDC);
+	}
+
+
+
+
+
+	CView::OnTimer(nIDEvent);
+}
