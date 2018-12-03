@@ -383,7 +383,7 @@ void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 							DirectionFlag[i][j] = -DirectionFlag[i][j];
 						}
 						p2.x = p1.x;
-						p2.y = 3*j*DirectionFlag[i][j]+p1.y;
+						p2.y = 3*(j+1)*DirectionFlag[i][j]+p1.y;
 					}
 					else if ((j + 1) % 2 == 1)//顶点为奇数编号
 					{
@@ -391,7 +391,7 @@ void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 						{
 							DirectionFlag[i][j] = -DirectionFlag[i][j];
 						}
-						p2.x = 3*j*DirectionFlag[i][j]+p1.x;
+						p2.x = 3*(j+1)*DirectionFlag[i][j]+p1.x;
 						p2.y =p1.y;
 					}
 					newObj->points.Add(p2);
