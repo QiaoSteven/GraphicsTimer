@@ -43,12 +43,7 @@ END_MESSAGE_MAP()
 CGraphicsTimerView::CGraphicsTimerView() noexcept
 {
 	// TODO: 在此处添加构造代码
-	CRect rect;
-	this->GetClientRect(rect);
-	LeftBorder = 0;
-	RightBorder=rect.right;
-	TopBorder = 0;
-	BottomBorder = rect.bottom;
+	
 
 	for (int i = 0; i < 100; i++)
 	{
@@ -292,9 +287,18 @@ void CGraphicsTimerView::OnLButtonDblClk(UINT nFlags, CPoint point)
 void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 {
 	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	CRect rect;//边界值
+	this->GetClientRect(rect);
+	LeftBorder = 0;
+	RightBorder = rect.right;
+	TopBorder = 0;
+	BottomBorder = rect.bottom;
+
+
 	if (nIDEvent == 1) //对1号计时器到期时，进行操作
 	{
 		CDC* pDC = this->GetDC();
+		
 		for (int i = 0; i < objList.GetSize(); i++)//最多可以拥有一百个图形
 		{
 			MapObj* obj = (MapObj*)objList.GetAt(i);//得到一个图形
@@ -347,10 +351,7 @@ void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 			objList.SetAt(i, newObj);//用新的顶点替换原来的顶点
 
 		}
-
-
-
-
+		
 		this->ReleaseDC(pDC);
 	}
 
