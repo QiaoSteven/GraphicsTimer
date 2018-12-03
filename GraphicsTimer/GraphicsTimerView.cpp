@@ -59,7 +59,7 @@ BOOL CGraphicsTimerView::PreCreateWindow(CREATESTRUCT& cs)
 
 // CGraphicsTimerView 绘图
 
-void CGraphicsTimerView::OnDraw(CDC* /*pDC*/)
+void CGraphicsTimerView::OnDraw(CDC* pDC)
 {
 	CGraphicsTimerDoc* pDoc = GetDocument();
 	ASSERT_VALID(pDoc);
@@ -67,6 +67,22 @@ void CGraphicsTimerView::OnDraw(CDC* /*pDC*/)
 		return;
 
 	// TODO: 在此处为本机数据添加绘制代码
+	for (int i = 0; i < objList.GetSize(); i++)
+	{
+		
+		MapObj* obj = (MapObj*)objList.GetAt(i);
+		if (obj->type == 1)
+		{
+			int pointsize = obj->points.GetSize();
+			for (int j = 0; j < pointsize; j++)
+			{
+				CPoint p1 = obj->points.GetAt(j);
+				CPoint p2 = obj->points.GetAt((j + 1) % pointsize);
+				DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
+			}
+		}
+		
+	}
 }
 
 
@@ -231,9 +247,11 @@ void CGraphicsTimerView::OnLButtonDblClk(UINT nFlags, CPoint point)
 		ReleaseCapture();//释放鼠标
 		boolLButtonDown = FALSE;
 		MapObj* obj = new MapObj();
+		obj->type = 1;
 		for (int i = 0; i < pointList.GetSize(); i++)
+		{
 			obj->points.Add(pointList.GetAt(i));
-
+		}
 		objList.Add(obj);//将此次图形的所有点保存下来
 		pointList.RemoveAll();//清空当前图形顶点列表，为下个图形做准备
 
