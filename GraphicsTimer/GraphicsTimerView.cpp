@@ -76,6 +76,15 @@ void CGraphicsTimerView::OnDraw(CDC* pDC)
 		return;
 
 	// TODO: 在此处为本机数据添加绘制代码
+
+	/*
+	CRect rect;
+	this->GetClientRect(rect);
+	pDC->FillSolidRect(&rect, RGB(255, 255, 255));
+	*/
+	
+
+
 	for (int i = 0; i < objList.GetSize(); i++)
 	{
 		
@@ -92,6 +101,9 @@ void CGraphicsTimerView::OnDraw(CDC* pDC)
 		}
 		
 	}
+
+
+
 }
 
 
@@ -190,7 +202,7 @@ void CGraphicsTimerView::OnDrawpolygon()
 void CGraphicsTimerView::OnStartmove()
 {
 	// TODO: 在此添加命令处理程序代码
-	this->SetTimer(1, 50, NULL);
+	this->SetTimer(1, 100, NULL);
 }
 
 
@@ -277,8 +289,9 @@ void CGraphicsTimerView::OnLButtonDblClk(UINT nFlags, CPoint point)
 
 
 
-		pointPrintList.RemoveAll();//使用前清空列表
+		
 		//开始求封闭多边形对应的bezier曲线上的离散点
+		pointPrintList.RemoveAll();//使用前清空列表
 		CPen pen, *oldpen;
 		pen.CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
 		oldpen = pDC->SelectObject(&pen);
@@ -307,7 +320,16 @@ void CGraphicsTimerView::OnLButtonDblClk(UINT nFlags, CPoint point)
 			pDC->LineTo(pointPrintList.GetAt(i));
 		}
 		pDC->SelectObject(oldpen);
-		pointPrintList.RemoveAll();
+
+		//存取此次封闭多边形对应的bezier曲线
+		MapObj* curveobj = new MapObj();
+		curveobj->type = 2;
+		for (int i = 0; i < pointPrintList.GetSize(); i++)
+		{
+			curveobj->points.Add(pointPrintList.GetAt(i));
+		}
+		curveList.Add(curveobj);//将此次图形的所有点保存下来
+		pointPrintList.RemoveAll();//清空当前图形顶点列表，为下个图形做准备
 
 
 	}
@@ -335,6 +357,12 @@ void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 	{
 		CDC* pDC = this->GetDC();
 		
+		/********************************************/
+		this->GetClientRect(rect);
+		pDC->FillSolidRect(&rect, RGB(255, 255, 255));
+		/********************************************/
+
+
 		for (int i = 0; i < objList.GetSize(); i++)//最多可以拥有一百个图形
 		{
 			MapObj* obj = (MapObj*)objList.GetAt(i);//得到一个图形
@@ -370,6 +398,7 @@ void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 				}
 			}
 
+			/*
 			pDC->SetROP2(R2_NOTXORPEN);//设置绘图模式为R2_NOT
 			for (int j = 0; j < obj->points.GetSize(); j++)
 			{
@@ -377,6 +406,8 @@ void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 				CPoint p2 = obj->points.GetAt((j + 1) % obj->points.GetSize());
 				DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
 			}
+			*/
+			
 			for (int j = 0; j < newObj->points.GetSize(); j++)
 			{
 				CPoint p1 = newObj->points.GetAt(j);
@@ -385,6 +416,65 @@ void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 			}
 
 			objList.SetAt(i, newObj);//用新的顶点替换原来的顶点
+
+
+			//开始画bezier曲线
+			/******************************************************************/
+			CPen pen, *oldpen;
+			pen.CreatePen(PS_SOLID, 1, RGB(255, 0, 0));
+			oldpen = pDC->SelectObject(&pen);
+
+
+			/*
+			//开始清除上一个多边形对应的bezier曲线
+			MapObj* curveobj = (MapObj*)curveList.GetAt(i);//得到一个图形
+			pDC->MoveTo(curveobj->points.GetAt(0));
+			for (int i = 1; i < curveobj->points.GetSize(); i++)
+			{
+				pDC->LineTo(curveobj->points.GetAt(i));
+			}
+			*/
+			
+			
+			//开始求新的封闭多边形对应的bezier曲线上的离散点
+			pointPrintList.RemoveAll();//使用前清空列表
+			int pointsize = newObj->points.GetSize();
+			for (int j = 0; j < pointsize; j++)
+			{
+				CPoint p1 = newObj->points.GetAt(j);
+				CPoint p2 = newObj->points.GetAt((j + 1) % pointsize);
+				CPoint p3 = newObj->points.GetAt((j + 2) % pointsize);
+				CPoint mid1;
+				CPoint mid2;
+				mid1.x = (p1.x + p2.x) / 2;
+				mid1.y = (p1.y + p2.y) / 2;
+				mid2.x = (p2.x + p3.x) / 2;
+				mid2.y = (p2.y + p3.y) / 2;
+				TempList.RemoveAll();//使用前清空列表
+				TempList.Add(mid1);
+				TempList.Add(p2);
+				TempList.Add(mid2);
+				BezierToPoints();
+			}
+
+			//存取新的封闭多边形对应的bezier曲线
+			MapObj* newcurveobj = new MapObj();
+			newcurveobj->type = 2;
+			for (int i = 0; i < pointPrintList.GetSize(); i++)
+			{
+				newcurveobj->points.Add(pointPrintList.GetAt(i));
+			}
+			curveList.SetAt(i,newcurveobj);//将此次图形的所有点保存下来
+			pointPrintList.RemoveAll();//清空当前图形顶点列表，为下个图形做准备
+
+			//画新的封闭多边形对应的bezier曲线
+			pDC->MoveTo(newcurveobj->points.GetAt(0));
+			for (int i = 1; i < newcurveobj->points.GetSize(); i++)
+			{
+				pDC->LineTo(newcurveobj->points.GetAt(i));
+			}
+			pDC->SelectObject(oldpen);
+			/******************************************************************/
 
 		}
 		

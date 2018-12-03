@@ -38,6 +38,7 @@ public:
 	CArray<CPoint, CPoint> pointPrintList;//曲线顶点列表
 	CArray<CPoint, CPoint> TempList;//临时顶点列表（中点-顶点-中点）
 	CObArray objList;//每画一个图形，一个Obj,链成ObjList
+	CObArray curveList;//每画一个多边形的内切bezier曲线，一个curveObj,链成curveList
 	int LeftBorder;//视窗的左边界
 	int RightBorder;//视窗的右边界
 	int TopBorder;//视窗的上边界
