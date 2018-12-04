@@ -44,7 +44,7 @@ CGraphicsTimerView::CGraphicsTimerView() noexcept
 {
 	// TODO: 在此处添加构造代码
 	
-
+	int a = 0;
 	for (int i = 0; i < 100; i++)
 	{
 		for (int d = 0; d < 100; d++)//防止超过边界，转换方向,每个图形都重新初始化一下这个DirectionFlag数组
