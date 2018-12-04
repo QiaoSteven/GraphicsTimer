@@ -96,7 +96,8 @@ void CGraphicsTimerView::OnDraw(CDC* pDC)
 			{
 				CPoint p1 = obj->points.GetAt(j);
 				CPoint p2 = obj->points.GetAt((j + 1) % pointsize);
-				DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
+				pDC->MoveTo(p1);
+				pDC->LineTo(p2);
 			}
 		}
 		
@@ -202,7 +203,7 @@ void CGraphicsTimerView::OnDrawpolygon()
 void CGraphicsTimerView::OnStartmove()
 {
 	// TODO: 在此添加命令处理程序代码
-	this->SetTimer(1, 100, NULL);
+	this->SetTimer(1, 50, NULL);
 }
 
 
@@ -249,9 +250,13 @@ void CGraphicsTimerView::OnMouseMove(UINT nFlags, CPoint point)
 		CDC* pDC = this->GetDC();//构造设备环境对象
 		pDC->SetROP2(R2_NOTXORPEN);//设置绘图模式为R2_NOT
 		//重新绘制前一个鼠标移动消息处理函数绘制的直线段,因为绘图模式的原因，结果就是擦除了该线段
-		DDALine(pDC, startPoint.x, startPoint.y, endPoint.x, endPoint.y, RGB(0, 0, 0));
+		//DDALine(pDC, startPoint.x, startPoint.y, endPoint.x, endPoint.y, RGB(0, 0, 0));
+		pDC->MoveTo(startPoint);
+		pDC->LineTo(endPoint);
 		//绘制新的直线段
-		DDALine(pDC, startPoint.x, startPoint.y, point.x, point.y, RGB(0, 0, 0));
+		//DDALine(pDC, startPoint.x, startPoint.y, point.x, point.y, RGB(0, 0, 0));
+		pDC->MoveTo(startPoint);
+		pDC->LineTo(point);
 		//保存新的直线段终点
 		endPoint = point;
 	}
@@ -284,7 +289,11 @@ void CGraphicsTimerView::OnLButtonDblClk(UINT nFlags, CPoint point)
 		{
 			CPoint p1 = obj->points.GetAt(j);
 			CPoint p2 = obj->points.GetAt((j + 1) % pointsize);
-			DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
+
+			pDC->MoveTo(p1);
+			pDC->LineTo(p2);
+			//DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
+
 		}
 
 
@@ -412,7 +421,9 @@ void CGraphicsTimerView::OnTimer(UINT_PTR nIDEvent)
 			{
 				CPoint p1 = newObj->points.GetAt(j);
 				CPoint p2 = newObj->points.GetAt((j + 1) % newObj->points.GetSize());
-				DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
+				pDC->MoveTo(p1);
+				pDC->LineTo(p2);
+				//DDALine(pDC, p1.x, p1.y, p2.x, p2.y, RGB(0, 0, 0));
 			}
 
 			objList.SetAt(i, newObj);//用新的顶点替换原来的顶点
